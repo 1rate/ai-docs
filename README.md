@@ -35,10 +35,17 @@ make health
 make down
 ```
 
-Auth: `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET /api/v1/auth/me` (Bearer).
+Auth:
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login` — access (15м) + refresh (7д), httpOnly cookies + JSON
+- `POST /api/v1/auth/refresh` — ротация refresh (cookie)
+- `POST /api/v1/auth/logout` — revoke refresh + blacklist access в Redis + clear cookies
+- `GET /api/v1/auth/me` — cookie или `Authorization: Bearer`
 
-Documents (admin JWT): `POST/GET/DELETE /api/v1/documents`. После upload нужен воркер: `make worker`.
+Documents (admin): `POST/GET/DELETE /api/v1/documents`. После upload: `make worker`.
 
-Для индексации в `backend/.env` нужен реальный `LLM_API_KEY` (эмбеддинги). Чанки пишутся в `document_chunks` (pgvector).
+Для индексации в `backend/.env` нужен `LLM_API_KEY`.  
+Живой Swagger: http://localhost:8000/docs  
 
-Swagger: http://localhost:8000/docs
+Офлайн-схема для фронта (GitHub Pages): `make openapi` → `docs/api/` — см. [docs/api/README.md](docs/api/README.md).
+

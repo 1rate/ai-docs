@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -29,10 +31,22 @@ class Settings(BaseSettings):
     chunk_size: int = 1000
     chunk_overlap: int = 200
 
-
-    jwt_secret_key: str = "dev-change-me-in-production"
+    jwt_secret_key: str = "dev-change-me-in-production-min-32-chars"
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60 * 24
+    access_token_expire_minutes: int = 15
+    refresh_token_expire_days: int = 7
+
+    access_cookie_name: str = "access_token"
+    refresh_cookie_name: str = "refresh_token"
+    cookie_secure: bool = False
+    cookie_samesite: str = "lax"
+    cookie_domain: str = ""
+
+    cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173"
+
+    @property
+    def cors_origins_list(self) -> List[str]:
+        return [item.strip() for item in self.cors_origins.split(",") if item.strip()]
 
 
 settings = Settings()

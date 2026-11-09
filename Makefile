@@ -1,4 +1,4 @@
-.PHONY: install up down ps logs run worker health migrate migrate-new admin
+.PHONY: install up down ps logs run worker health migrate migrate-new admin openapi
 
 install:
 	cd backend && .venv/bin/pip install -r requirements.txt
@@ -32,4 +32,8 @@ migrate-new:
 
 admin:
 	cd backend && .venv/bin/python scripts/create_admin.py --email "$(email)" --password "$(password)"
+
+openapi:
+	cd backend && .venv/bin/python scripts/export_openapi.py
+
 

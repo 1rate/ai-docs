@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ai-docs API</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css"
+    />
+    <style>
+      body {
+        margin: 0;
+        background: #fafafa;
+      }
+      .topbar {
+        display: none;
+      }
+      .note {
+        max-width: 960px;
+        margin: 16px auto 0;
+        padding: 0 20px;
+        font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #444;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="note">
+      Статический снимок OpenAPI из репозитория. Обновляется командой
+      <code>make openapi</code> и пушем. Живой API / Try it out — только когда
+      бекенд онлайн (<code>/docs</code> на сервере или ngrok).
+    </p>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+    <script>
+      window.ui = SwaggerUIBundle({
+        url: "./openapi.json",
+        dom_id: "#swagger-ui",
+        deepLinking: true,
+        presets: [SwaggerUIBundle.presets.apis],
+        layout: "BaseLayout",
+      });
+    </script>
+  </body>
+</html>
