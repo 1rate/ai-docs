@@ -17,17 +17,19 @@ ai-docs/
 | Компонент | Роль |
 |-----------|------|
 | FastAPI | HTTP API |
-| PostgreSQL + pgvector | Метаданные документов, чаты, история, эмбеддинги |
+| PostgreSQL | Метаданные, чаты, текст чанков |
+| Qdrant | Векторный поиск (эмбеддинги) |
 | MinIO | Файлы исходных документов (PDF/DOCX/…) |
-| Redis | Кеш частых ответов / rate limit |
-| LLM API | Генерация ответа по найденному контексту |
+| Redis | Очередь индексации (+ позже кеш) |
+| LLM API | Эмбеддинги и генерация ответа |
 
-Подробности: [docs/architecture.md](docs/architecture.md), схема взаимодействия: [docs/system-interaction.md](docs/system-interaction.md).
+Архитектура и пайплайн (as-is / to-be, LiteLLM/Langfuse/…): [docs/architecture.md](docs/architecture.md).  
+Взаимодействие с клиентом (sequence): [docs/system-interaction.md](docs/system-interaction.md).
 
 ## Быстрый старт
 
 ```bash
-make up                          # Postgres, Redis, MinIO
+make up                          # Postgres, Redis, MinIO, Qdrant
 make migrate                     # применить миграции БД
 make admin email=admin@example.com password=admin12345
 make run                         # FastAPI на :8000

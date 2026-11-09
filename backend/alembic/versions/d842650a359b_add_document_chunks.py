@@ -6,12 +6,9 @@ Create Date: 2026-11-06 17:49:25.399162
 
 """
 
-from collections.abc import Sequence
-from typing import Union
+from typing import Sequence, Union
 
-import sqlalchemy as sa
 from alembic import op
-from pgvector.sqlalchemy import Vector
 
 revision: str = "d842650a359b"
 down_revision: Union[str, None] = "3aec8c687d2d"
@@ -21,30 +18,25 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS vector")
-    op.create_table(
-        "document_chunks",
-        sa.Column("id", sa.UUID(), nullable=False),
-        sa.Column("document_id", sa.UUID(), nullable=False),
-        sa.Column("chunk_index", sa.Integer(), nullable=False),
-        sa.Column("content", sa.Text(), nullable=False),
-        sa.Column("embedding", Vector(dim=1536), nullable=False),
-        sa.Column(
-            "created_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=False,
-        ),
-        sa.ForeignKeyConstraint(["document_id"], ["documents.id"], ondelete="CASCADE"),
-        sa.PrimaryKeyConstraint("id"),
+    op.execute(
+        """
+        CREATE TABLE document_chunks (
+            id UUID NOT NULL,
+            document_id UUID NOT NULL,
+            chunk_index INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            embedding vector(1536) NOT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+            PRIMARY KEY (id),
+            FOREIGN KEY(document_id) REFERENCES documents (id) ON DELETE CASCADE
+        )
+        """
     )
-    op.create_index(
-        op.f("ix_document_chunks_document_id"),
-        "document_chunks",
-        ["document_id"],
-        unique=False,
+    op.execute(
+        "CREATE INDEX ix_document_chunks_document_id ON document_chunks (document_id)"
     )
 
 
 def downgrade() -> None:
-    op.drop_index(op.f("ix_document_chunks_document_id"), table_name="document_chunks")
-    op.drop_table("document_chunks")
+    op.execute("DROP INDEX IF EXISTS ix_document_chunks_document_id")
+    op.execute("DROP TABLE IF EXISTS document_chunks")

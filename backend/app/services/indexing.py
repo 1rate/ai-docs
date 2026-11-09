@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.chunk import DocumentChunk
 from app.models.document import Document
-from app.services import minio_storage
+from app.services import minio_storage, qdrant_store
 from app.services.chunking import split_text
 from app.services.embeddings import embed_texts
 from app.services.text_extract import extract_text
@@ -30,19 +30,32 @@ async def index_document(db: AsyncSession, document: Document) -> int:
 
     embeddings = await embed_texts(chunks)
 
+    await qdrant_store.delete_by_document_id(document.id)
     await db.execute(delete(DocumentChunk).where(DocumentChunk.document_id == document.id))
 
-    for index, (content, embedding) in enumerate(zip(chunks, embeddings)):
+    chunk_ids: list[uuid.UUID] = []
+    chunk_indexes: list[int] = []
+    for index, content in enumerate(chunks):
+        chunk_id = uuid.uuid4()
+        chunk_ids.append(chunk_id)
+        chunk_indexes.append(index)
         db.add(
             DocumentChunk(
-                id=uuid.uuid4(),
+                id=chunk_id,
                 document_id=document.id,
                 chunk_index=index,
                 content=content,
-                embedding=embedding,
             )
         )
     await db.flush()
+
+    await qdrant_store.upsert_chunks(
+        document_id=document.id,
+        chunk_ids=chunk_ids,
+        contents=chunks,
+        embeddings=embeddings,
+        chunk_indexes=chunk_indexes,
+    )
     return len(chunks)
 
 

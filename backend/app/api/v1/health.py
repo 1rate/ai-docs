@@ -4,6 +4,7 @@ from sqlalchemy import text
 from app.core.config import settings
 from app.db.session import AsyncSessionLocal
 from app.schemas.health import HealthResponse
+from app.services import qdrant_store
 
 router = APIRouter(tags=["health"])
 
@@ -19,10 +20,16 @@ async def health() -> HealthResponse:
     except Exception as exc:
         checks["postgres"] = f"error: {exc.__class__.__name__}"
 
-    status = "ok" if all(value == "ok" for value in checks.values()) else "degraded"
+    try:
+        await qdrant_store.ping()
+        checks["qdrant"] = "ok"
+    except Exception as exc:
+        checks["qdrant"] = f"error: {exc.__class__.__name__}"
+
+    status_value = "ok" if all(value == "ok" for value in checks.values()) else "degraded"
 
     return HealthResponse(
-        status=status,
+        status=status_value,
         app=settings.app_name,
         env=settings.app_env,
         checks=checks,

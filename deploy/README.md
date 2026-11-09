@@ -4,43 +4,25 @@
 
 | Сервис | Порт | Назначение |
 |--------|------|------------|
-| Postgres (+ pgvector) | `5432` | БД, метаданные, вектора |
+| Postgres | `5432` | Метаданные, чаты, текст чанков |
 | Redis | `6379` | Очередь задач (+ позже кеш) |
 | MinIO API | `9000` | Файлы документов |
 | MinIO Console | `9001` | Веб-UI MinIO |
+| Qdrant | `6333` | Вектора / similarity search |
 
 Логин/пароль MinIO Console: `minioadmin` / `minioadmin`.  
-Postgres: user/db/password = `ai_docs` / `ai_docs` / `ai_docs`.
+Postgres: user/db/password = `ai_docs` / `ai_docs` / `ai_docs`.  
+Qdrant UI: http://localhost:6333/dashboard
 
 ## Запуск
-
-Нужен Docker Desktop. Из корня репозитория или из `deploy/`:
 
 ```bash
 cd deploy
 docker compose up -d
-```
-
-Статус:
-
-```bash
 docker compose ps
-docker compose logs -f
 ```
 
-Остановка (данные в volumes сохраняются):
+Остановка: `docker compose down`  
+Сброс данных: `docker compose down -v`
 
-```bash
-docker compose down
-```
-
-Полный сброс данных:
-
-```bash
-docker compose down -v
-```
-
-## Связка с бекендом
-
-В `backend/` скопируй `.env.example` → `.env` (URL уже заточены под эти порты).  
-Бекенд пока запускается отдельно через uvicorn, не в Docker.
+Бекенд локально через `make run` / `make worker`.

@@ -14,6 +14,10 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+asyncpg://ai_docs:ai_docs@localhost:5432/ai_docs"
     redis_url: str = "redis://localhost:6379/0"
+    qdrant_url: str = "http://localhost:6333"
+    qdrant_collection: str = "document_chunks"
+    qdrant_api_key: str = ""
+
 
     minio_endpoint: str = "localhost:9000"
     minio_access_key: str = "minioadmin"

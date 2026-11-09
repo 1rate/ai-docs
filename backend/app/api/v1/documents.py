@@ -13,7 +13,7 @@ from app.models.document import Document
 from app.models.enums import DocumentStatus
 from app.models.user import User
 from app.schemas.document import DocumentListResponse, DocumentRead, DocumentUploadResponse
-from app.services import minio_storage
+from app.services import minio_storage, qdrant_store
 from app.services.queue import enqueue_document_indexing
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -147,6 +147,7 @@ async def delete_document(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
     storage_key = document.storage_key
+    await qdrant_store.delete_by_document_id(document_id)
     await db.delete(document)
     await db.commit()
 
