@@ -1,3 +1,4 @@
+import contextlib
 from functools import lru_cache
 from typing import BinaryIO, Optional
 
@@ -43,10 +44,8 @@ def upload_file(
 
 def delete_file(storage_key: str) -> None:
     client = get_minio_client()
-    try:
+    with contextlib.suppress(S3Error):
         client.remove_object(settings.minio_bucket, storage_key)
-    except S3Error:
-        pass
 
 
 def download_file(storage_key: str) -> bytes:
@@ -57,4 +56,3 @@ def download_file(storage_key: str) -> bytes:
     finally:
         response.close()
         response.release_conn()
-

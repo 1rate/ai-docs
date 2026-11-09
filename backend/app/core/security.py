@@ -2,7 +2,7 @@ import hashlib
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 import bcrypt
 import jwt
@@ -33,7 +33,7 @@ def create_access_token(
     subject: str,
     role: str,
     expires_delta: Optional[timedelta] = None,
-) -> Tuple[str, str, datetime]:
+) -> tuple[str, str, datetime]:
     now = datetime.now(timezone.utc)
     expire = now + (
         expires_delta

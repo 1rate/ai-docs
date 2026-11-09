@@ -30,9 +30,7 @@ async def index_document(db: AsyncSession, document: Document) -> int:
 
     embeddings = await embed_texts(chunks)
 
-    await db.execute(
-        delete(DocumentChunk).where(DocumentChunk.document_id == document.id)
-    )
+    await db.execute(delete(DocumentChunk).where(DocumentChunk.document_id == document.id))
 
     for index, (content, embedding) in enumerate(zip(chunks, embeddings)):
         db.add(

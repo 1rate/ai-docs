@@ -1,0 +1,28 @@
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+src = ["app", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "I",
+  "UP",
+  "B",
+  "SIM",
+]
+ignore = [
+  "B008",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"alembic/**" = ["E501"]
+"scripts/**" = ["E402"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+filterwarnings = [
+  "ignore::DeprecationWarning",
+]

@@ -5,12 +5,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from sqlalchemy import select
-
 from app.core.security import hash_password
 from app.db.session import AsyncSessionLocal
 from app.models.enums import UserRole
 from app.models.user import User
+from sqlalchemy import select
 
 
 async def main(email: str, password: str, first_name: str, last_name: str) -> None:

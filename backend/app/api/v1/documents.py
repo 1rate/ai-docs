@@ -102,9 +102,7 @@ async def list_documents(
     if status_filter is not None:
         filters.append(Document.status == status_filter)
 
-    total_result = await db.execute(
-        select(func.count()).select_from(Document).where(*filters)
-    )
+    total_result = await db.execute(select(func.count()).select_from(Document).where(*filters))
     total = int(total_result.scalar_one())
 
     result = await db.execute(

@@ -47,5 +47,8 @@ Documents (admin): `POST/GET/DELETE /api/v1/documents`. После upload: `make
 Для индексации в `backend/.env` нужен `LLM_API_KEY`.  
 Живой Swagger: http://localhost:8000/docs  
 
-Офлайн-схема для фронта (GitHub Pages): `make openapi` → `docs/api/` — см. [docs/api/README.md](docs/api/README.md).
+Офлайн-схема для фронта: `make openapi` → `docs/api/` (+ автообновление в CI).  
+Настройка Pages/Actions: [docs/api/README.md](docs/api/README.md).
+
+Локально / CI: `make lint`, `make format`, `make test` (workflow `.github/workflows/ci.yml`).
 

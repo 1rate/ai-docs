@@ -9,8 +9,7 @@ def extract_text(*, raw: bytes, content_type: str, filename: str) -> str:
     if content_type == "application/pdf" or lowered.endswith(".pdf"):
         return _from_pdf(raw)
     if (
-        content_type
-        == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         or lowered.endswith(".docx")
     ):
         return _from_docx(raw)

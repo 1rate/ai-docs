@@ -1,7 +1,6 @@
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from typing import Tuple
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -62,11 +61,9 @@ async def rotate_refresh_token(
     db: AsyncSession,
     *,
     raw_refresh_token: str,
-) -> Tuple[IssuedTokens, User]:
+) -> tuple[IssuedTokens, User]:
     token_hash = hash_token(raw_refresh_token)
-    result = await db.execute(
-        select(RefreshToken).where(RefreshToken.token_hash == token_hash)
-    )
+    result = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
     stored = result.scalar_one_or_none()
     now = datetime.now(timezone.utc)
 
@@ -112,9 +109,7 @@ async def rotate_refresh_token(
 
 async def revoke_refresh_token(db: AsyncSession, raw_refresh_token: str) -> bool:
     token_hash = hash_token(raw_refresh_token)
-    result = await db.execute(
-        select(RefreshToken).where(RefreshToken.token_hash == token_hash)
-    )
+    result = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
     stored = result.scalar_one_or_none()
     if stored is None:
         return False

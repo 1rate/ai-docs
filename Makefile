@@ -1,4 +1,4 @@
-.PHONY: install up down ps logs run worker health migrate migrate-new admin openapi
+.PHONY: install up down ps logs run worker health migrate migrate-new admin openapi lint format test
 
 install:
 	cd backend && .venv/bin/pip install -r requirements.txt
@@ -35,5 +35,14 @@ admin:
 
 openapi:
 	cd backend && .venv/bin/python scripts/export_openapi.py
+
+lint:
+	cd backend && .venv/bin/ruff check .
+
+format:
+	cd backend && .venv/bin/ruff format . && .venv/bin/ruff check --fix .
+
+test:
+	cd backend && .venv/bin/pytest -q
 
 

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from app.core.config import settings
 
@@ -8,7 +8,7 @@ def split_text(
     *,
     chunk_size: Optional[int] = None,
     chunk_overlap: Optional[int] = None,
-) -> List[str]:
+) -> list[str]:
     size = chunk_size if chunk_size is not None else settings.chunk_size
     overlap = chunk_overlap if chunk_overlap is not None else settings.chunk_overlap
     cleaned = " ".join(text.split())
@@ -19,7 +19,7 @@ def split_text(
     if overlap < 0 or overlap >= size:
         raise ValueError("chunk_overlap must be >= 0 and < chunk_size")
 
-    chunks: List[str] = []
+    chunks: list[str] = []
     start = 0
     length = len(cleaned)
     while start < length:

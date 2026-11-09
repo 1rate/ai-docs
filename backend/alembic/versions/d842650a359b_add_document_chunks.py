@@ -5,12 +5,13 @@ Revises: 3aec8c687d2d
 Create Date: 2026-11-06 17:49:25.399162
 
 """
-from typing import Sequence, Union
+
+from collections.abc import Sequence
+from typing import Union
 
 import sqlalchemy as sa
 from alembic import op
 from pgvector.sqlalchemy import Vector
-
 
 revision: str = "d842650a359b"
 down_revision: Union[str, None] = "3aec8c687d2d"

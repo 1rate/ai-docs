@@ -1,11 +1,9 @@
-from typing import List
-
 import httpx
 
 from app.core.config import settings
 
 
-async def embed_texts(texts: List[str]) -> List[List[float]]:
+async def embed_texts(texts: list[str]) -> list[list[float]]:
     if not texts:
         return []
     if not settings.llm_api_key:
@@ -17,7 +15,7 @@ async def embed_texts(texts: List[str]) -> List[List[float]]:
         "Content-Type": "application/json",
     }
 
-    vectors: List[List[float]] = []
+    vectors: list[list[float]] = []
     batch_size = 64
     async with httpx.AsyncClient(timeout=60.0) as client:
         for i in range(0, len(texts), batch_size):

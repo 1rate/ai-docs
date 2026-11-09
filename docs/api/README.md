@@ -13,13 +13,19 @@ git commit -m "docs: refresh OpenAPI snapshot"
 git push
 ```
 
-## Включить GitHub Pages
+На GitHub это делает CI (`.github/workflows/openapi.yml`):
 
-1. GitHub → Settings → Pages  
-2. Source: **Deploy from a branch**  
-3. Branch: `main` (или ваша), folder: **/docs**  
-4. Схема будет здесь:  
+- **pull_request** — падает, если `docs/api/openapi.json` устарел (нужен `make openapi`)
+- **push в main/master** при изменениях `backend/app/**` — сам пересобирает снимок и коммитит
+
+## Что настроить в GitHub
+
+1. **Actions** включены: Settings → Actions → General → Allow all actions  
+2. Workflow permissions: Settings → Actions → General → Workflow permissions → **Read and write**  
+   (чтобы бот мог запушить обновлённый `openapi.json`)  
+3. **Pages**: Settings → Pages → Deploy from a branch → `main` + folder **/docs**  
+4. URL схемы:  
    `https://<user>.github.io/<repo>/api/`  
    JSON: `https://<user>.github.io/<repo>/api/openapi.json`
 
-Фронт может всегда читать `openapi.json` с этого URL для просмотра/codegen.
+Фронт читает `openapi.json` с Pages даже когда твой ноут выключен.

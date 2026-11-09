@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -22,7 +22,7 @@ class DocumentRead(BaseModel):
 
 
 class DocumentListResponse(BaseModel):
-    items: List[DocumentRead]
+    items: list[DocumentRead]
     total: int
     page: int
     page_size: int

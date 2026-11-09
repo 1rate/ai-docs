@@ -49,7 +49,7 @@ async def get_current_user(
             raise credentials_exception
         user_id = uuid.UUID(subject)
     except (jwt.PyJWTError, ValueError):
-        raise credentials_exception
+        raise credentials_exception from None
 
     if await is_access_token_blacklisted(jti):
         raise credentials_exception
