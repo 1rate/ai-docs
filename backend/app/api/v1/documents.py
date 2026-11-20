@@ -1,5 +1,7 @@
 import asyncio
+import hashlib
 import uuid
+from datetime import date
 from io import BytesIO
 from typing import Optional
 
@@ -7,12 +9,17 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_admin
+from app.api.deps import get_current_admin, rate_limit_document_upload
 from app.db.session import get_db
 from app.models.document import Document
 from app.models.enums import DocumentStatus
 from app.models.user import User
-from app.schemas.document import DocumentListResponse, DocumentRead, DocumentUploadResponse
+from app.schemas.document import (
+    DocumentListResponse,
+    DocumentRead,
+    DocumentUpdate,
+    DocumentUploadResponse,
+)
 from app.services import minio_storage, qdrant_store
 from app.services.queue import enqueue_document_indexing
 
@@ -34,13 +41,13 @@ MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 async def upload_document(
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
-    admin: User = Depends(get_current_admin),
+    admin: User = Depends(rate_limit_document_upload),
 ) -> DocumentUploadResponse:
-    content_type = file.content_type or "application/octet-stream"
-    if content_type not in ALLOWED_CONTENT_TYPES:
+    mime_type = file.content_type or "application/octet-stream"
+    if mime_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unsupported content type: {content_type}",
+            detail=f"Unsupported content type: {mime_type}",
         )
 
     raw = await file.read()
@@ -55,6 +62,14 @@ async def upload_document(
             detail="File too large (max 20MB)",
         )
 
+    file_hash = hashlib.sha256(raw).hexdigest()
+    existing = await db.execute(select(Document).where(Document.file_hash == file_hash))
+    if existing.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Document with the same content already exists",
+        )
+
     document_id = uuid.uuid4()
     filename = file.filename or "document"
     storage_key = f"{document_id}/{filename}"
@@ -65,7 +80,7 @@ async def upload_document(
             storage_key=storage_key,
             data=BytesIO(raw),
             length=len(raw),
-            content_type=content_type,
+            content_type=mime_type,
         )
     except Exception as exc:
         raise HTTPException(
@@ -77,7 +92,9 @@ async def upload_document(
         id=document_id,
         filename=filename,
         storage_key=storage_key,
-        content_type=content_type,
+        file_hash=file_hash,
+        size_bytes=len(raw),
+        mime_type=mime_type,
         status=DocumentStatus.pending,
         uploaded_by=admin.id,
     )
@@ -95,12 +112,18 @@ async def list_documents(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     status_filter: Optional[DocumentStatus] = Query(None, alias="status"),
+    doc_type: Optional[str] = Query(None),
+    doc_date: Optional[date] = Query(None),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_admin),
 ) -> DocumentListResponse:
     filters = []
     if status_filter is not None:
         filters.append(Document.status == status_filter)
+    if doc_type is not None:
+        filters.append(Document.doc_type == doc_type)
+    if doc_date is not None:
+        filters.append(Document.doc_date == doc_date)
 
     total_result = await db.execute(select(func.count()).select_from(Document).where(*filters))
     total = int(total_result.scalar_one())
@@ -132,6 +155,27 @@ async def get_document(
     document = result.scalar_one_or_none()
     if document is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+    return document
+
+
+@router.patch("/{document_id}", response_model=DocumentRead)
+async def update_document(
+    document_id: uuid.UUID,
+    body: DocumentUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_admin),
+) -> Document:
+    result = await db.execute(select(Document).where(Document.id == document_id))
+    document = result.scalar_one_or_none()
+    if document is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+
+    updates = body.model_dump(exclude_unset=True)
+    for field, value in updates.items():
+        setattr(document, field, value)
+
+    await db.commit()
+    await db.refresh(document)
     return document
 
 

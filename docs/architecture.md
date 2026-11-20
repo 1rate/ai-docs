@@ -24,7 +24,7 @@ Auth: access JWT (короткий) + refresh (БД) + httpOnly cookies; logout 
 | PostgreSQL | users, chats, messages, documents, текст чанков, refresh_tokens |
 | Qdrant | эмбеддинги чанков, similarity search |
 | MinIO | исходные файлы (PDF/DOCX/TXT) |
-| Redis | очередь индексации; blacklist access; позже кеш ответов |
+| Redis | очередь индексации; blacklist access; rate limit; позже кеш ответов |
 | Worker | `make worker` — индексация документов |
 | LLM / Embedding API | через HTTP (сейчас); позже LiteLLM → OpenAI / Ollama / … |
 
@@ -125,7 +125,7 @@ flowchart TB
 - **MinIO** — бинарники.
 - **PostgreSQL** — транзакционные данные и текст чанков (удобно JOIN / аудит).
 - **Qdrant** — быстрый векторный поиск; не смешиваем с OLTP.
-- **Redis** — эфемерное: очередь, blacklist токенов, кеш.
+- **Redis** — эфемерное: очередь, blacklist токенов, rate limit, кеш.
 
 ## Будущие инструменты (дорожная карта)
 
@@ -145,6 +145,7 @@ flowchart TB
 |--------|--------|
 | Health, config, Docker (PG/Redis/MinIO/Qdrant) | есть |
 | Auth (register/login/refresh/logout, cookies) | есть |
+| Rate limit (login/register/refresh по IP; upload по user) | есть |
 | Documents CRUD + очередь + worker индексации | есть |
 | Chats + RAG answer | план |
 | LiteLLM / Langfuse / Presidio / LangGraph / LangChain | план |

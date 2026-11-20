@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.rate_limit import enforce_rate_limit
 from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.models.enums import UserRole
@@ -70,6 +71,17 @@ async def get_current_admin(
             detail="Admin role required",
         )
     return current_user
+
+
+async def rate_limit_document_upload(
+    admin: User = Depends(get_current_admin),
+) -> User:
+    await enforce_rate_limit(
+        key=f"rate:documents_upload:{admin.id}",
+        limit=settings.rate_limit_documents_upload_limit,
+        window_seconds=settings.rate_limit_documents_upload_window_seconds,
+    )
+    return admin
 
 
 def get_token_expiry_from_access(token: str) -> datetime:

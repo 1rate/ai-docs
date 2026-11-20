@@ -20,14 +20,14 @@ async def main(email: str, password: str, first_name: str, last_name: str) -> No
             user.role = UserRole.admin
             user.hashed_password = hash_password(password)
             user.first_name = first_name
-            user.last_name = last_name or None
+            user.last_name = last_name
             user.is_active = True
             print(f"Updated existing user to admin: {email}")
         else:
             user = User(
                 email=email.lower(),
                 first_name=first_name,
-                last_name=last_name or None,
+                last_name=last_name,
                 hashed_password=hash_password(password),
                 role=UserRole.admin,
             )
@@ -41,6 +41,6 @@ if __name__ == "__main__":
     parser.add_argument("--email", required=True)
     parser.add_argument("--password", required=True)
     parser.add_argument("--first-name", default="Admin")
-    parser.add_argument("--last-name", default="")
+    parser.add_argument("--last-name", default="Admin")
     args = parser.parse_args()
     asyncio.run(main(args.email, args.password, args.first_name, args.last_name))

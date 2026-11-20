@@ -13,7 +13,10 @@ class UserRead(BaseModel):
     id: uuid.UUID
     email: EmailStr
     first_name: str
-    last_name: Optional[str]
+    last_name: str
     role: UserRole
     is_active: bool
+    email_verified_at: Optional[datetime] = None
+    last_login_at: Optional[datetime] = None
     created_at: datetime
+    updated_at: datetime

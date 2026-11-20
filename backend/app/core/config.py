@@ -46,9 +46,19 @@ class Settings(BaseSettings):
 
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173"
 
+    rate_limit_login_limit: int = 10
+    rate_limit_login_window_seconds: int = 60
+    rate_limit_register_limit: int = 5
+    rate_limit_register_window_seconds: int = 60
+    rate_limit_refresh_limit: int = 30
+    rate_limit_refresh_window_seconds: int = 60
+    rate_limit_documents_upload_limit: int = 20
+    rate_limit_documents_upload_window_seconds: int = 3600
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [item.strip() for item in self.cors_origins.split(",") if item.strip()]
 
 
 settings = Settings()
+

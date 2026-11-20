@@ -74,7 +74,7 @@ flowchart LR
 - **Postgres** — пользователи, сессии refresh, документы, текст чанков, чаты;
 - **Qdrant** — вектора и поиск;
 - **MinIO** — файлы;
-- **Redis** — очередь индексации + blacklist access;
+- **Redis** — очередь индексации + blacklist access + rate limit;
 - **Worker** — парсинг → чанки → embed → PG + Qdrant;
 - **LLM** — сейчас HTTP API; позже через LiteLLM (OpenAI/Ollama/…).
 

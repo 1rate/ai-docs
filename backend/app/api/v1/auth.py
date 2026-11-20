@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Optional
 
 import jwt
@@ -13,6 +14,7 @@ from app.api.deps import (
 )
 from app.core.config import settings
 from app.core.cookies import clear_auth_cookies, set_auth_cookies
+from app.core.rate_limit import rate_limit_by_ip
 from app.core.security import hash_password, verify_password
 from app.db.session import get_db
 from app.models.enums import UserRole
@@ -27,6 +29,22 @@ from app.services.auth_session import (
 from app.services.token_blacklist import blacklist_access_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+_login_limit = rate_limit_by_ip(
+    "auth_login",
+    limit=settings.rate_limit_login_limit,
+    window_seconds=settings.rate_limit_login_window_seconds,
+)
+_register_limit = rate_limit_by_ip(
+    "auth_register",
+    limit=settings.rate_limit_register_limit,
+    window_seconds=settings.rate_limit_register_window_seconds,
+)
+_refresh_limit = rate_limit_by_ip(
+    "auth_refresh",
+    limit=settings.rate_limit_refresh_limit,
+    window_seconds=settings.rate_limit_refresh_window_seconds,
+)
 
 
 def _set_session_cookies(response: Response, issued) -> None:
@@ -43,6 +61,7 @@ def _set_session_cookies(response: Response, issued) -> None:
 async def register(
     body: RegisterRequest,
     db: AsyncSession = Depends(get_db),
+    _: None = Depends(_register_limit),
 ) -> User:
     existing = await db.execute(select(User).where(User.email == body.email))
     if existing.scalar_one_or_none() is not None:
@@ -54,7 +73,7 @@ async def register(
     user = User(
         email=body.email.lower(),
         first_name=body.first_name.strip(),
-        last_name=body.last_name.strip() if body.last_name else None,
+        last_name=body.last_name.strip(),
         hashed_password=hash_password(body.password),
         role=UserRole.user,
     )
@@ -69,6 +88,7 @@ async def login(
     body: LoginRequest,
     response: Response,
     db: AsyncSession = Depends(get_db),
+    _: None = Depends(_login_limit),
 ) -> TokenResponse:
     result = await db.execute(select(User).where(User.email == body.email.lower()))
     user = result.scalar_one_or_none()
@@ -83,6 +103,7 @@ async def login(
             detail="User is inactive",
         )
 
+    user.last_login_at = datetime.now(timezone.utc)
     issued = await issue_tokens(db, user)
     _set_session_cookies(response, issued)
     return TokenResponse(
@@ -98,6 +119,7 @@ async def login_form(
     response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
+    _: None = Depends(_login_limit),
 ) -> TokenResponse:
     return await login(
         LoginRequest(email=form_data.username, password=form_data.password),
@@ -111,6 +133,7 @@ async def refresh(
     request: Request,
     response: Response,
     db: AsyncSession = Depends(get_db),
+    _: None = Depends(_refresh_limit),
 ) -> TokenResponse:
     raw_refresh: Optional[str] = request.cookies.get(settings.refresh_cookie_name)
     if not raw_refresh:
